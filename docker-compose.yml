@@ -1,0 +1,99 @@
+version: '3'
+services:
+    php:
+        image: 'thecodingmachine/php:8.1-v4-apache'
+        restart: unless-stopped
+        environment:
+            APACHE_DOCUMENT_ROOT: 'public/'
+            PHP_EXTENSION_INTL: 1
+            PHP_EXTENSION_TOKENIZER: 1
+            PHP_EXTENSION_PDO: 1
+            PHP_EXTENSION_MBSTRING: 1
+            PHP_EXTENSION_JSON: 1
+            PHP_EXTENSION_FILEINFO: 1
+            PHP_EXTENSION_CTYPE: 1
+            PHP_EXTENSION_BCMATH: 1
+            PHP_EXTENSION_IMAGICK: 1
+            PHP_EXTENSION_GD: 1
+            PHP_EXTENSION_CURL: 1
+            PHP_EXTENSION_XDEBUG: 1
+            PHP_EXTENSION_ZIP: 1
+
+            PHP_INI_XDEBUG__MODE: develop,debug
+            PHP_INI_XDEBUG__START_WITH_REQUEST: 1
+            PHP_INI_XDEBUG__CLIENT_PORT: 9000
+            PHP_INI_XDEBUG__DISCOVER_CLIENT_HOST: 1
+            PHP_INI_XDEBUG__CLIENT_HOST: host.docker.internal #172.17.0.1
+            PHP_INI_XDEBUG__IDEKEY: PHPSTORM
+        ports:
+            - '80:80'
+        volumes:
+            - '~/.ssh:/c/Users/HP/.ssh'
+            - '.:/var/www/html:rw'
+        privileged: true
+        depends_on:
+            - redis
+            - db-server
+            - mailhog
+        networks:
+            - local-networks
+    db-server:
+        image: 'mariadb:10.5.8'
+        # container_name: db-server
+        restart: unless-stopped
+        tty: true
+        ports:
+            - '3306:3306'
+        environment:
+            MYSQL_ROOT_HOST: "%"
+            # MYSQL_DATABASE: homestead
+            MYSQL_ROOT_PASSWORD: "admin"
+            MYSQL_TCP_PORT: 3306
+        # command: --sql_mode=""
+        volumes:
+            - './db-schemas:/var/lib/mysql:rw'
+        networks:
+            - local-networks
+
+    phpmyadmin:
+        image: 'phpmyadmin/phpmyadmin:latest'
+        restart: unless-stopped
+        depends_on:
+            - db-server
+        # container_name: kovo-gestion-indumentaria-pma
+        links:
+            - db-server
+        environment:
+            PMA_HOST: db-server
+            PMA_PORT: 3306
+            PMA_ARBITRARY: 1
+            PMA_USER: "root"
+            PMA_PASSWORD: "admin"
+            UPLOAD_LIMIT: 1024M
+            MAX_EXECUTION_TIME: 24000
+        ports:
+            - 8081:80
+        networks:
+            - local-networks
+
+    redis:
+        image: redis:alpine
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        networks:
+            - local-networks
+    mailhog:
+        image: mailhog/mailhog:latest
+        restart: unless-stopped
+        ports:
+            - "1025:1025"
+            - "8025:8025"
+        networks:
+            - local-networks
+
+volumes:
+    db-schemas: {}
+networks:
+    local-networks:
+        driver: bridge

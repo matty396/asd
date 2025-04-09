@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class VentaDetalle extends Model
+{
+    use HasFactory;
+    protected $table = "lvl_ventas_detalle";
+
+    protected $fillable = [
+        'id',
+        'venta_id',
+        'mercaderia_id',
+        'descripcion',
+        'codigo',
+        'monto',
+        'codigo',
+        'cantidad',
+        'created_at',
+        'updated_at',
+    ];
+}
